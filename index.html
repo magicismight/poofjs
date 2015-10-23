@@ -17,12 +17,28 @@
         }
 
         header{
+            position: relative;
             height: 50px;
             line-height: 50px;
             font-size: 24px;
             background-color: #101010;
             border-bottom: 3px solid #02A1F2;
-            text-align: center;
+        }
+
+        header iframe{
+            position: absolute;
+            top: 50%;
+            right: 10px;
+            transform: translate3d(0, -50%, 0);
+            -webkit-transform: translate3d(0, -50%, 0);
+        }
+
+        .github-button{
+            float: right;
+            padding: 0 10px;
+            color: #fff;
+            text-decoration: none;
+            font-size: 14px;
         }
 
         form:after{
@@ -243,7 +259,9 @@
     </style>
 </head>
 <body>
-    <header>Poof.js —— Unicode隐藏式加密(仅支持UTF-8编码)</header>
+    <header>Poof.js —— Unicode隐藏式加密(仅支持UTF-8编码)
+        <a class="github-button" href="https://github.com/magicismight/poof.js" data-icon="octicon-star" data-style="mega" data-count-href="/magicismight/poof.js/stargazers" data-count-api="/repos/magicismight/poof.js#stargazers_count" data-count-aria-label="# stargazers on GitHub" aria-label="Star magicismight/poof.js on GitHub">Star On GitHub</a>
+    </header>
     <form>
         <fieldset class=" cell">
             <div class="wrapper">
@@ -317,114 +335,114 @@
             </div>
         </div>
     </form>
-</body>
-<script src="Poof.js"></script>
-<script>
-    (function () {
-        var origin = document.getElementById('origin'),
-            poof = document.getElementById('poof'),
-            originLength = document.getElementById('originLength'),
-            poofLength = document.getElementById('poofLength'),
-            percent = document.getElementById('percent'),
-            result = document.getElementById('decodeResult'),
-            compiled = document.getElementById('compiled'),
-            execute = document.getElementById('execute'),
-            compilePercent = document.getElementById('compilePercent'),
-            type = window.localStorage.getItem('type'),
-            selected = document.querySelector('input[value="' + type + '"]');
+    <script src="Poof.js"></script>
+    <script>
+        (function () {
+            var origin = document.getElementById('origin'),
+                poof = document.getElementById('poof'),
+                originLength = document.getElementById('originLength'),
+                poofLength = document.getElementById('poofLength'),
+                percent = document.getElementById('percent'),
+                result = document.getElementById('decodeResult'),
+                compiled = document.getElementById('compiled'),
+                execute = document.getElementById('execute'),
+                compilePercent = document.getElementById('compilePercent'),
+                type = window.localStorage.getItem('type'),
+                selected = document.querySelector('input[value="' + type + '"]');
 
-        if (selected) {
-            selected.checked = true;
-        } else {
-            document.querySelector('input[value="default"]').checked = true;
-        }
-
-        function getByte(str) {
-            var l = 0,
-                i = 0;
-
-            for (; i < str.length; i++) {
-                if (str[i].match(/[^x00-xff]/ig) != null) //全角
-                    l += 2;
-                else
-                    l += 1;
+            if (selected) {
+                selected.checked = true;
+            } else {
+                document.querySelector('input[value="default"]').checked = true;
             }
-            return l;
-        }
 
-        function throttle(callback, limit) {
-            var wait = false;
-            return function () {
-                if (!wait) {
-                    callback.call();
-                    wait = true;
-                    setTimeout(function () {
-                        wait = false;
-                    }, limit);
+            function getByte(str) {
+                var l = 0,
+                    i = 0;
+
+                for (; i < str.length; i++) {
+                    if (str[i].match(/[^x00-xff]/ig) != null) //全角
+                        l += 2;
+                    else
+                        l += 1;
+                }
+                return l;
+            }
+
+            function throttle(callback, limit) {
+                var wait = false;
+                return function () {
+                    if (!wait) {
+                        callback.call();
+                        wait = true;
+                        setTimeout(function () {
+                            wait = false;
+                        }, limit);
+                    }
                 }
             }
-        }
 
-        function originChange() {
-            var z = new P(origin.value),
-                length = z.encode().length,
-                compiledStr = z.compile.apply(z, arguments);
+            function originChange() {
+                var z = new P(origin.value),
+                    length = z.encode().length,
+                    compiledStr = z.compile.apply(z, arguments);
 
-            // 输出转换为零宽代码的结果
-            poof.value = '"' + z.encode() + '"';
+                // 输出转换为零宽代码的结果
+                poof.value = '"' + z.encode() + '"';
 
-            // 输出原始字符串长度
-            originLength.innerHTML = getByte(origin.value);
+                // 输出原始字符串长度
+                originLength.innerHTML = getByte(origin.value);
 
-            // 输出转换后长度
-            poofLength.innerHTML = length;
+                // 输出转换后长度
+                poofLength.innerHTML = length;
 
-            // 输出数据转换比率
-            percent.innerHTML = (origin.value ? ((length / getByte(origin.value)) * 100).toFixed(2) : '0.00') + '%';
+                // 输出数据转换比率
+                percent.innerHTML = (origin.value ? ((length / getByte(origin.value)) * 100).toFixed(2) : '0.00') + '%';
 
-            // 输出编译代码转换比率
-            compilePercent.innerHTML = (origin.value ? ((compiledStr.length / getByte(origin.value)) * 100).toFixed(2) : '0.00') + '%';
+                // 输出编译代码转换比率
+                compilePercent.innerHTML = (origin.value ? ((compiledStr.length / getByte(origin.value)) * 100).toFixed(2) : '0.00') + '%';
 
-            // 检测原字符串decodeUnicode的值是否全等于解码后的字符串
-            //
-            // WHY
-            // 为什么要对原字符串进行decodeUnicode后才比较？
-            //
-            // REASON
-            // z.decode的返回值中所有的Unicode码都已decode
-            // 需要对原始字符串进行decode，以免元素代码中出现unicode码导致对比失败
-            result.innerHTML = z.decode() === Poof.decodeUnicode(origin.value) ? '<mark class="pass">通过</mark>' : '<mark class="fail">未通过</mark>';
+                // 检测原字符串decodeUnicode的值是否全等于解码后的字符串
+                //
+                // WHY
+                // 为什么要对原字符串进行decodeUnicode后才比较？
+                //
+                // REASON
+                // z.decode的返回值中所有的Unicode码都已decode
+                // 需要对原始字符串进行decode，以免元素代码中出现unicode码导致对比失败
+                result.innerHTML = z.decode() === Poof.decodeUnicode(origin.value) ? '<mark class="pass">通过</mark>' : '<mark class="fail">未通过</mark>';
 
-            // 输出编译结果
-            compiled.innerHTML = compiledStr;
-        }
-
-        origin.addEventListener('input', throttle(function () {originChange(type)}, 100), false);
-        origin.addEventListener('propertychange', throttle(function () {originChange(type)}, 100), false);
-        originChange(type);
-
-        execute.addEventListener('click', function () {
-            eval(compiled.value);
-        }, false);
-
-
-        document.addEventListener('focus', function (e) {
-            if (e.target.getAttribute('autoselect') !== null) {
-                setTimeout(function () {
-                    e.target.select();
-                }, 100);
+                // 输出编译结果
+                compiled.innerHTML = compiledStr;
             }
-        }, true);
-        document.addEventListener('blur', function (e) {
-            e.preventDefault();
-        }, true);
 
-        document.getElementById('options').addEventListener('change', function (e) {
-            type = e.target.value;
-            window.localStorage.setItem('type', type);
+            origin.addEventListener('input', throttle(function () {originChange(type)}, 100), false);
+            origin.addEventListener('propertychange', throttle(function () {originChange(type)}, 100), false);
             originChange(type);
-        }, true);
-    }());
-</script>
 
+            execute.addEventListener('click', function () {
+                eval(compiled.value);
+            }, false);
+
+
+            document.addEventListener('focus', function (e) {
+                if (e.target.getAttribute('autoselect') !== null) {
+                    setTimeout(function () {
+                        e.target.select();
+                    }, 100);
+                }
+            }, true);
+            document.addEventListener('blur', function (e) {
+                e.preventDefault();
+            }, true);
+
+            document.getElementById('options').addEventListener('change', function (e) {
+                type = e.target.value;
+                window.localStorage.setItem('type', type);
+                originChange(type);
+            }, true);
+        }());
+    </script>
+    <script async defer id="github-bjs" src="https://buttons.github.io/buttons.js"></script>
+</body>
 </html>
