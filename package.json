@@ -1,7 +1,7 @@
 {
     "name": "poof",
     "version": "0.0.1",
-    "description": "Unicode隐藏式加密javascript代码",
+    "description": "使用特殊的Unicode代码对javascript代码进行隐藏式加密",
     "repository": {
         "type": "git",
         "url": "git@github.com:magicismight/poof.js.git"
