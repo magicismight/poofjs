@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Poof.js —— Unicode隐藏式加密</title>
+    <style>
+        *{
+            padding: 0;
+            margin: 0;
+        }
+
+        body{
+            padding-bottom: 40px;
+            min-width: 1080px;
+            background-color: #242B30;
+            color: #fff;
+        }
+
+        header{
+            height: 50px;
+            line-height: 50px;
+            font-size: 24px;
+            background-color: #101010;
+            border-bottom: 3px solid #02A1F2;
+            text-align: center;
+        }
+
+        form:after{
+            content: '';
+            display: block;
+            clear: both;
+        }
+
+        fieldset{
+            border: none;
+        }
+
+        .cell{
+            width: 50%;
+            box-sizing: border-box;
+            -webkit-box-sizing: border-box;
+            padding: 20px;
+        }
+
+        .cell:nth-child(odd){
+            float: left;
+            clear: left;
+        }
+
+        .cell:nth-child(even):after{
+            content: '';
+            display: block;
+            clear: left;
+        }
+
+        .cell:nth-child(even){
+            margin-left: 50%;
+        }
+
+        .wrapper{
+            margin: 0 auto;
+            max-width: 500px;
+        }
+
+        .title{
+            display: block;
+            color: #fff;
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+
+        #origin,
+        #compiled{
+            padding: 10px;
+            line-height: 20px;
+            width: 100%;
+            height: 350px;
+            resize: none;
+            border-radius: 8px;
+            outline: none;
+        }
+
+        button{
+            margin-top: 20px;
+            padding: 8px 12px;
+            color: #fff;
+            font-size: 20px;
+            font-weight: bold;
+            border: none;
+            border-radius: 5px;
+            background-color: #02A1F2;
+            outline: none;
+            cursor: pointer;
+        }
+
+        button:hover{
+            transform: translate3D(1px, 1px, 0);
+            -webkit-transform: translate3D(1px, 1px, 0);
+        }
+
+        #poof{
+            margin-top: 5px;
+            width: 20px;
+            height:20px;
+            resize: none;
+            line-height: 20px;
+            text-align: center;
+        }
+
+        dl{
+            overflow: hidden;
+            font-size: 18px;
+            line-height: 30px;
+        }
+
+        dt{
+            float: left;
+            clear: left;
+            color: #ccc;
+        }
+
+        dt:after{
+            content: '：';
+        }
+
+        dd{
+            float: left;
+            min-width: 1px;
+            height: 30px;
+            font-size: 22px;
+        }
+
+        aside{
+            margin-left: 10px;
+            color: #aaa;
+            font-size: 14px;
+        }
+
+        aside:before{
+            content: '(';
+        }
+
+        aside:after{
+            content: ')';
+        }
+
+        mark {
+            background: none;
+        }
+
+        .pass{
+            color: green;
+        }
+
+        .fail{
+            color: red;
+        }
+
+        .note{
+            padding-top: 20px;
+            font-size: 13px;
+            color: #ddd;
+        }
+
+        .note:before{
+            content: 'NOTE:';
+            display: block;
+            margin-bottom: 10px;
+            font-size: 24px;
+            font-weight: bold;
+            letter-spacing: 3px;
+            color: #02A1F2;
+        }
+
+        .note mark{
+            color: #02A1F2;
+        }
+
+        .notes{
+            padding-left: 25px;
+            line-height: 20px;
+            font-size: 14px;
+        }
+
+        .notes a{
+            color: inherit;
+            text-decoration: underline;
+        }
+
+        .compare-shot{
+            display: block;
+            margin-top: 20px;
+            width: 100%;
+        }
+
+        .options{
+            overflow: hidden;
+            list-style: none;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .options li{
+            position: relative;
+            float: left;
+            width: 25%;
+            text-align: center;
+        }
+
+        .options li:before{
+            content: '破解难度:' attr(level);
+            line-height: 20px;
+            font-size: 12px;
+            text-align: left;
+            color: #999;
+        }
+
+        .options label{
+            display: block;
+            cursor: pointer;
+        }
+
+        .options span{
+            display: block;
+            line-height: 30px;
+            font-size: 18px;
+            transition: color 1s;
+            -webkit-transition: color .5s;
+        }
+
+        .options label:hover{
+            color: orange;
+        }
+
+        .options input{
+            display: none;
+        }
+
+        .options input:checked + span{
+            color: orange;
+            border-bottom: 1px solid orange;
+        }
+    </style>
+</head>
+<body>
+    <header>Poof.js —— Unicode隐藏式加密(仅支持UTF-8编码)</header>
+    <form>
+        <fieldset class=" cell">
+            <div class="wrapper">
+                <label class="title" for="origin">原字符串</label>
+                <textarea id="origin">alert('HELLO WORLD!\r\n世界，你好！');</textarea>
+            </div>
+        </fieldset>
+        <div class="cell">
+            <div class="wrapper">
+                <label class="title">数据</label>
+                <dl>
+                    <dt>隐藏字符 (隐藏字符串被包裹在双引号内)</dt>
+                    <dd>
+                        <textarea id="poof" autoselect></textarea>
+                    </dd>
+                    <dt>原字符串长度</dt>
+                    <dd id="originLength"></dd>
+                    <dt>隐藏字符长度</dt>
+                    <dd id="poofLength"></dd>
+                    <dt>数据转换比率</dt>
+                    <dd id="percent"></dd>
+                    <dd><aside>此数据仅供参考</aside></dd>
+                    <dt>编译代码转换比率</dt>
+                    <dd id="compilePercent"></dd>
+                    <dd><aside>此数据仅供参考</aside></dd>
+                    <dt>解码校验结果</dt>
+                    <dd id="decodeResult"></dd>
+                </dl>
+
+                <div class="note">在开启GZIP对js进行压缩传输时，编译后的js文件传输数据量大约为源文件的<mark>两倍</mark></div>
+                <a href="./static/compareShot.png" target="_blank"><img class="compare-shot" src="./static/compareShot.png" /></a>
+            </div>
+        </div>
+        <fieldset class="cell">
+            <div class="wrapper">
+                <label class="title" for="compiled">编译结果</label>
+                <textarea id="compiled" autoselect></textarea>
+                <button id="execute" type="button">执行js</button>
+            </div>
+        </fieldset>
+        <div class="cell">
+            <div class="wrapper">
+                <label class="title">编译选项</label>
+                <ul class="options" id="options">
+                    <li level="★★☆☆☆">
+                        <label><input type="radio" name="type" value="default" /><span>基础编译</span></label>
+                    </li>
+                    <li level="★★★☆☆">
+                        <label><input type="radio" name="type" value="split" /><span>解码分解</span></label>
+                    </li>
+                    <li level="★★★☆☆">
+                        <label><input type="radio" name="type" value="multiple" /><span>多重分解</span></label>
+                    </li>
+                    <li level="★★★★☆">
+                        <label><input type="radio" name="type" value="fake" /><span>伪装分解</span></label>
+                    </li>
+                </ul>
+                <ul class="options-description" id="options-description">
+
+                </ul>
+                <div class="note">
+                    <h3>下面这些注意事项可以增加js文件的安全性</h3>
+                    <ol class="notes">
+                        <li><mark>永远不要把你所有的js代码加密！</mark>应只加密一些核心流程与敏感数据，或者一些植入监控程序，并且把分解后的代码块隐藏在整个的各个角落 <a href="javascript:alert('尚缺文档')">WHY?</a></li>
+                        <li>编译生成的代码需要在<mark>局部变量作用域</mark>内调用，并<mark>使用混淆压缩</mark>增加破解难度</li>
+                        <li>加密是使用UTF-8中的一些特殊字符实现，其他编码格式无法加密</li>
+                        <li>加密可破解，只能通过分开放置各部分解密代码的方式增加破解难度</li>
+                        <li>加密后的js文件在服务器端输出的时候最好能携带编码头Content-Tpe: application/javascript; <mark>charset=utf-8</mark>。 <a href="javascript:alert('尚缺文档')">WHY?</a></li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </form>
+</body>
+<script src="Poof.js"></script>
+<script>
+    (function () {
+        var origin = document.getElementById('origin'),
+            poof = document.getElementById('poof'),
+            originLength = document.getElementById('originLength'),
+            poofLength = document.getElementById('poofLength'),
+            percent = document.getElementById('percent'),
+            result = document.getElementById('decodeResult'),
+            compiled = document.getElementById('compiled'),
+            execute = document.getElementById('execute'),
+            compilePercent = document.getElementById('compilePercent'),
+            type = window.localStorage.getItem('type'),
+            selected = document.querySelector('input[value="' + type + '"]');
+
+        if (selected) {
+            selected.checked = true;
+        } else {
+            document.querySelector('input[value="default"]').checked = true;
+        }
+
+        function getByte(str) {
+            var l = 0,
+                i = 0;
+
+            for (; i < str.length; i++) {
+                if (str[i].match(/[^x00-xff]/ig) != null) //全角
+                    l += 2;
+                else
+                    l += 1;
+            }
+            return l;
+        }
+
+        function throttle(callback, limit) {
+            var wait = false;
+            return function () {
+                if (!wait) {
+                    callback.call();
+                    wait = true;
+                    setTimeout(function () {
+                        wait = false;
+                    }, limit);
+                }
+            }
+        }
+
+        function originChange() {
+            var z = new P(origin.value),
+                length = z.encode().length,
+                compiledStr = z.compile.apply(z, arguments);
+
+            // 输出转换为零宽代码的结果
+            poof.value = '"' + z.encode() + '"';
+
+            // 输出原始字符串长度
+            originLength.innerHTML = getByte(origin.value);
+
+            // 输出转换后长度
+            poofLength.innerHTML = length;
+
+            // 输出数据转换比率
+            percent.innerHTML = (origin.value ? ((length / getByte(origin.value)) * 100).toFixed(2) : '0.00') + '%';
+
+            // 输出编译代码转换比率
+            compilePercent.innerHTML = (origin.value ? ((compiledStr.length / getByte(origin.value)) * 100).toFixed(2) : '0.00') + '%';
+
+            // 检测原字符串decodeUnicode的值是否全等于解码后的字符串
+            //
+            // WHY
+            // 为什么要对原字符串进行decodeUnicode后才比较？
+            //
+            // REASON
+            // z.decode的返回值中所有的Unicode码都已decode
+            // 需要对原始字符串进行decode，以免元素代码中出现unicode码导致对比失败
+            result.innerHTML = z.decode() === Poof.decodeUnicode(origin.value) ? '<mark class="pass">通过</mark>' : '<mark class="fail">未通过</mark>';
+
+            // 输出编译结果
+            compiled.innerHTML = compiledStr;
+        }
+
+        origin.addEventListener('input', throttle(function () {originChange(type)}, 100), false);
+        origin.addEventListener('propertychange', throttle(function () {originChange(type)}, 100), false);
+        originChange(type);
+
+        execute.addEventListener('click', function () {
+            eval(compiled.value);
+        }, false);
+
+
+        document.addEventListener('focus', function (e) {
+            if (e.target.getAttribute('autoselect') !== null) {
+                setTimeout(function () {
+                    e.target.select();
+                }, 100);
+            }
+        }, true);
+        document.addEventListener('blur', function (e) {
+            e.preventDefault();
+        }, true);
+
+        document.getElementById('options').addEventListener('change', function (e) {
+            type = e.target.value;
+            window.localStorage.setItem('type', type);
+            originChange(type);
+        }, true);
+    }());
+</script>
+
+</html>
