@@ -100,9 +100,14 @@
         }
     };
 
-    var constructorCompile = JSON.stringify(("constructor").split('').map(function (letter) {
-        return ~letter.charCodeAt();
-    }));
+    var offset = 0;
+
+    function constructorCompile() {
+        offset = +(+new Date() + '').slice(-1) + 100;
+        return JSON.stringify(("constructor").split('').map(function (letter) {
+            return ~letter.charCodeAt() + offset;
+        }));
+    }
 
     Poof.complies = {
         default: function (content) {
@@ -127,8 +132,8 @@
                 '}\r\n' +
                 '\r\n' +
                 '// 第三部分：执行代码\r\n' +
-                'atob[' + constructorCompile + '.map(function (code) {\r\n' +
-                '   return String.fromCharCode(~code);\r\n' +
+                'atob[' + constructorCompile() + '.map(function (code) {\r\n' +
+                '   return String.fromCharCode(~code + ' + offset + ');\r\n' +
                 '}).join("")](poofDecode())();';
         },
 
@@ -139,7 +144,6 @@
                 contentString = '';
 
             for (; i < parts; i++) {
-
                 contentString += 'poofContents.push("' + content.substr(length * i, length) + '");\r\n' +
                     '\r\n';
             }
@@ -164,14 +168,15 @@
                 '}\r\n' +
                 '\r\n' +
                 '// 第四部分：执行代码\r\n' +
-                'atob[' + constructorCompile + '.map(function (code) {\r\n' +
-                '   return String.fromCharCode(~code);\r\n' +
+                'atob[' + constructorCompile() + '.map(function (code) {\r\n' +
+                '   return String.fromCharCode(~code + ' + offset + ');\r\n' +
                 '}).join("")](poofDecode())();';
         },
 
         fake: function (content, text) {
             var fakePoofsMap = [],
                 fakeLength = 6,
+
                 fakePoofs = ['number', 'object', 'string', 'module', 'export', 'import'];
 
 
@@ -201,8 +206,8 @@
                 '}\r\n' +
                 '\r\n' +
                 '// 第三部分：执行代码\r\n' +
-                'atob[' + constructorCompile + '.map(function (code) {\r\n' +
-                '   return String.fromCharCode(~code);\r\n' +
+                'atob[' + constructorCompile() + '.map(function (code) {\r\n' +
+                '   return String.fromCharCode(~code + ' + offset + ');\r\n' +
                 '}).join("")](poofDecode())();';
         }
     };
